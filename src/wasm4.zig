@@ -17,6 +17,10 @@ pub const SCREEN_SIZE: u32 = 160;
 
 pub const PALETTE: *[4]u32 = @intToPtr(*[4]u32, 0x04);
 pub const DRAW_COLORS: *u16 = @intToPtr(*u16, 0x14);
+
+// CHANGE: pointer to all gamepads
+pub const GAMEPADS: *const [4]u8 = @intToPtr(*[4]u8, 0x16);
+
 pub const GAMEPAD1: *const u8 = @intToPtr(*const u8, 0x16);
 pub const GAMEPAD2: *const u8 = @intToPtr(*const u8, 0x17);
 pub const GAMEPAD3: *const u8 = @intToPtr(*const u8, 0x18);
