@@ -6,11 +6,18 @@ const shapes = @import("shapes.zig");
 
 
 export fn start() void {
-    game.setup() catch {};
+    game.setup() catch |e| {
+        util.log("start() error {}", .{e}) catch {};
+    };
 }
 
 var frame_counter: u32 = 0;
 export fn update() void {
-    game.update(frame_counter) catch {};
+    if (frame_counter == 0) {
+        util.log("First update", .{}) catch {};
+    }
+    game.update(frame_counter) catch |e| {
+        util.log("update() error {}", .{e}) catch {};
+    };
     frame_counter += 1;
 }
