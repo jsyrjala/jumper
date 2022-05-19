@@ -67,6 +67,14 @@ pub const Vec2 = struct {
        return self.add(normal.scale(-1).scale(2 * self.dot(normal)));
     }
 
+    pub fn clampX(self: Vec2, min: f32, max: f32) Vec2 {
+        return Vec2{.x = math.clamp(self.x, min, max), .y = self.y};
+    }
+
+    pub fn clampY(self: Vec2, min: f32, max: f32) Vec2 {
+        return Vec2{.x = self.x, .y = math.clamp(self.y, min, max)};
+    }
+
 };
 
 

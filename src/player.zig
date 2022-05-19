@@ -1,4 +1,6 @@
 const std = @import("std");
+const math = std.math;
+
 const Allocator = std.mem.Allocator;
 const vector = @import("vector.zig");
 const Vec2 = vector.Vec2;
@@ -12,6 +14,13 @@ const EntityID = @import("ecs/entities.zig").EntityID;
 const Adapter = @import("ecs/systems.zig").Adapter;
 const util = @import("util.zig");
 
+const max_walk_speed: f32 = 1;
+const max_run_speed: f32 = 2;
+const walk_acceleration: f32 = 0.07;
+const run_acceleration: f32 = 0.15;
+const deceleration: f32 = 0.07;
+const gravity: f32 = 2;
+const ground_y: f32 = 130 + 8;
 
 pub fn setup(allocator: *Allocator, world: *World) !void {
     try createPlayer(allocator, world, 0, Vec2{.x = 10, .y = 130}, Vec2.zero());
@@ -98,14 +107,54 @@ const playerSystem = ( struct {
 }).playerFunc;
 
 fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Sprite) !void {
-    _ = velocity;
     const input = player.input();
+    var acceleration = Vec2.zero();
+    var max_speed: f32 = max_run_speed;
     if (input.left) {
-        position.* = position.*.add(Vec2{.x = -1, .y = 0});
         sprite.animation_frame = 2;
-    }
-    if (input.right) {
-        position.* = position.*.add(Vec2{.x = 1, .y = 0});
+        if (input.button_1) {
+            // running
+            acceleration = Vec2{.x = -run_acceleration, .y = 0};
+            max_speed = max_run_speed;
+        } else {
+            acceleration = Vec2{.x = -walk_acceleration, .y = 0};
+            max_speed = max_walk_speed;
+        }
+    } else if (input.right) {
         sprite.animation_frame = 1;
+        if (input.button_1) {
+            // running
+            acceleration = Vec2{.x = run_acceleration, .y = 0};
+            max_speed = max_run_speed;
+        } else {
+            acceleration = Vec2{.x = walk_acceleration, .y = 0};
+            max_speed = max_walk_speed;
+        }
+    }
+    velocity.* = velocity.*.add(acceleration);
+
+    if (!input.left and !input.right) {
+        // not pressing any buttons => slow down
+        if (velocity.*.x > 0) {
+            velocity.*.x -= deceleration;
+            velocity.*.x = math.clamp(velocity.*.x, 0, max_speed);
+        } else {
+            velocity.*.x += deceleration;
+            velocity.*.x = math.clamp(velocity.*.x, -max_speed, 0);
+        }
+    }
+    position.* = position.*.add(velocity.*);
+    if (position.*.x < 0) {
+        position.*.x = 0;
+        if (velocity.*.x < 0) {
+            velocity.*.x = 0;
+        }
+    }
+    const right_limit = @intToFloat(f32, w4.SCREEN_SIZE) - @intToFloat(f32, sprite.*.width);
+    if (position.*.x > right_limit) {
+        position.*.x = right_limit;
+        if (velocity.*.x > 0) {
+            velocity.*.x = 0;
+        }
     }
 }
