@@ -2,6 +2,7 @@ const std = @import("std");
 
 const colors = @import("colors.zig");
 const util = @import("util.zig");
+const sprite = @import("sprite.zig");
 const vector = @import("vector.zig");
 const Vec2 = vector.Vec2;
 
@@ -23,8 +24,9 @@ pub fn setup() !void {
     colors.setup();
     var allocator = worldAllocator.allocator();
     world = try World.init(allocator);
-    try player.setup(allocator, &world);
 
+    try sprite.setup(&allocator, &world);
+    try player.setup(&allocator, &world);
 
     try util.log("setup done", .{});
 }

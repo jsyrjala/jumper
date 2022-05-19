@@ -2,6 +2,8 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const vector = @import("vector.zig");
 const Vec2 = vector.Vec2;
+const Sprite = @import("sprite.zig").Sprite;
+const shapes = @import("shapes.zig");
 
 const w4 = @import("wasm4.zig");
 
@@ -11,25 +13,28 @@ const Adapter = @import("ecs/systems.zig").Adapter;
 const util = @import("util.zig");
 
 
-pub fn setup(allocator: Allocator, world: *World) !void {
+pub fn setup(allocator: *Allocator, world: *World) !void {
     try createPlayer(allocator, world, 0, Vec2{.x = 10, .y = 130}, Vec2.zero());
     try world.register("player", playerSystem);
 }
 
-fn createPlayer(allocator: Allocator, world: *World, index: u16, position: Vec2, velocity: Vec2) !void{
-    const player1Id = try world.entities.new();
+fn createPlayer(allocator: *Allocator, world: *World, index: u16, position: Vec2, velocity: Vec2) !void{
+    const playerId = try world.entities.new();
 
-    var player1Component = try allocator.create(Player);
-    player1Component.* = Player.init(index, player1Id);
-    try world.entities.setComponent(player1Id, "player", player1Component);
+    var player = try allocator.create(Player);
+    player.* = Player.init(index, playerId);
+    try world.entities.setComponent(playerId, "player", player);
 
     var pos = try allocator.create(Vec2);
     pos.* = position;
-    try world.entities.setComponent(player1Id, "position", pos);
+    try world.entities.setComponent(playerId, "position", pos);
 
     var vel = try allocator.create(Vec2);
     vel.* = velocity;
-    try world.entities.setComponent(player1Id, "velocity", vel);
+    try world.entities.setComponent(playerId, "velocity", vel);
+
+    var sprite = try Sprite.init(allocator, &shapes.smiley);
+    try world.entities.setComponent(playerId, "sprite", sprite);
 }
 
 pub const Player = struct {
@@ -84,16 +89,23 @@ const playerSystem = ( struct {
             var player = adapter.world.entities.getComponent(row.entity, "player", *Player) orelse unreachable;
             var position = adapter.world.entities.getComponent(row.entity, "position", *Vec2) orelse unreachable;
             var velocity = adapter.world.entities.getComponent(row.entity, "velocity", *Vec2) orelse unreachable;
-            updatePlayer(player, position, velocity) catch |e| {
+            var sprite = adapter.world.entities.getComponent(row.entity, "sprite", *Sprite) orelse unreachable;
+            updatePlayer(player, position, velocity, sprite) catch |e| {
                 util.log("PlayerSystem: Failure {}", .{e}) catch {};
             };
         }
     }
 }).playerFunc;
 
-fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2) !void {
+fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Sprite) !void {
+    _ = velocity;
     const input = player.input();
-    if (input.changed) {
-        try util.log("input: {} position={} velocity={}", .{input, position, velocity});
+    if (input.left) {
+        position.* = position.*.add(Vec2{.x = -1, .y = 0});
+        sprite.animation_frame = 2;
+    }
+    if (input.right) {
+        position.* = position.*.add(Vec2{.x = 1, .y = 0});
+        sprite.animation_frame = 1;
     }
 }
