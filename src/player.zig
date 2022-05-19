@@ -19,11 +19,15 @@ const max_run_speed: f32 = 2;
 const walk_acceleration: f32 = 0.07;
 const run_acceleration: f32 = 0.15;
 const deceleration: f32 = 0.07;
-const gravity: f32 = 2;
+const walk_jump_velocity: f32 = 5;
+const run_jump_velocity: f32 = 15;
+const jump_gravity: f32 = 0.6;
+const drop_gravity: f32 = 0.8;
+const strong_jump_gravity: f32 = 0.2;
 const ground_y: f32 = 130 + 8;
 
 pub fn setup(allocator: *Allocator, world: *World) !void {
-    try createPlayer(allocator, world, 0, Vec2{.x = 10, .y = 130}, Vec2.zero());
+    try createPlayer(allocator, world, 0, Vec2{.x = 10, .y = ground_y}, Vec2.zero());
     try world.register("player", playerSystem);
 }
 
@@ -50,12 +54,14 @@ pub const Player = struct {
     index: u16,
     entity: EntityID,
     prev_gamepad: u8,
+    jump_held: bool,
 
     pub fn init(index: u16, entity: EntityID) Player {
         return Player{
             .index = index, 
-            .entity = entity, 
+            .entity = entity,
             .prev_gamepad = 0,
+            .jump_held = false,
         };
     }
 
@@ -110,9 +116,13 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
     const input = player.input();
     var acceleration = Vec2.zero();
     var max_speed: f32 = max_run_speed;
+    const run_button = input.button_2;
+    const jump_button = input.button_1;
+
+    // moving left and right
     if (input.left) {
         sprite.animation_frame = 2;
-        if (input.button_1) {
+        if (run_button) {
             // running
             acceleration = Vec2{.x = -run_acceleration, .y = 0};
             max_speed = max_run_speed;
@@ -122,7 +132,7 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
         }
     } else if (input.right) {
         sprite.animation_frame = 1;
-        if (input.button_1) {
+        if (run_button) {
             // running
             acceleration = Vec2{.x = run_acceleration, .y = 0};
             max_speed = max_run_speed;
@@ -131,10 +141,35 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
             max_speed = max_walk_speed;
         }
     }
+
+    // jumping
+    const jumping = position.*.y < ground_y;
+    var gravity = jump_gravity;
+
+    if (jump_button and !jumping and !player.*.jump_held) {
+        player.*.jump_held = true;
+        velocity.*.y -= walk_jump_velocity;
+        sprite.animation_frame = 0;
+    }
+
+    if (!jump_button) {
+        player.*.jump_held = false;
+    }
+    // gravity
+    // jump button hold, and raising => lower gravity
+    if (jump_button and player.*.jump_held and velocity.*.y < 0) {
+        gravity = strong_jump_gravity;
+    }
+    // dropping => higher gravity
+    if (jumping and velocity.*.y > 0) {
+        gravity = drop_gravity;
+    }
+    acceleration = acceleration.add(Vec2{.x = 0, .y = gravity});
+
     velocity.* = velocity.*.add(acceleration);
 
+    // not pressing any buttons => slow down
     if (!input.left and !input.right) {
-        // not pressing any buttons => slow down
         if (velocity.*.x > 0) {
             velocity.*.x -= deceleration;
             velocity.*.x = math.clamp(velocity.*.x, 0, max_speed);
@@ -143,7 +178,9 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
             velocity.*.x = math.clamp(velocity.*.x, -max_speed, 0);
         }
     }
+
     position.* = position.*.add(velocity.*);
+
     if (position.*.x < 0) {
         position.*.x = 0;
         if (velocity.*.x < 0) {
@@ -156,5 +193,11 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
         if (velocity.*.x > 0) {
             velocity.*.x = 0;
         }
+    }
+
+    // hits ground
+    if (position.*.y >= ground_y) {
+        position.*.y = ground_y;
+        velocity.*.y = math.max(0, -velocity.*.y);
     }
 }
