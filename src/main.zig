@@ -3,24 +3,18 @@ const w4 = @import("wasm4.zig");
 const game = @import("game.zig");
 const colors = @import("colors.zig");
 const util = @import("util.zig");
+const shapes = @import("shapes.zig");
 
-const smiley = [8]u8{
-    0b11000011,
-    0b10000001,
-    0b00100100,
-    0b00100100,
-    0b00000000,
-    0b00100100,
-    0b10011001,
-    0b11000011,
-};
 
 export fn start() void {
     util.log("setup", .{}) catch {};
     colors.setup();
 }
 
+var frame: u32 = 0;
+var clicks: u32 = 0;
 export fn update() void {
+    frame += 1;
     try game.update();
 
     w4.DRAW_COLORS.* = 3;
@@ -29,10 +23,12 @@ export fn update() void {
     w4.DRAW_COLORS.* = 2;
     const gamepad = w4.GAMEPAD1.*;
     if (gamepad & w4.BUTTON_1 != 0) {
+        clicks += 1;
         w4.DRAW_COLORS.* = 4;
     }
 
-    w4.blit(&smiley, 76, 76, 8, 8, w4.BLIT_1BPP);
+    const shape = &shapes.smiley[@rem(clicks, shapes.smiley.len)];
+    w4.blit(shape, 76, 76, 8, 8, w4.BLIT_1BPP);
     w4.text("Press X to blink", 16, 90);
 
 }
