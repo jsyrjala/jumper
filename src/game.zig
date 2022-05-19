@@ -17,8 +17,6 @@ var world: World = undefined;
 
 var buffer: [5000]u8 = undefined;
 var worldAllocator = std.heap.FixedBufferAllocator.init(&buffer);
-var player1Component: Player = undefined;
-var player2Component: Player = undefined;
 
 fn playerInput2(player: *Player) void {
     util.log("Player {}", .{player})  catch {};
@@ -33,12 +31,16 @@ pub fn setup() !void {
     try util.log("game.setup()", .{});
     colors.setup();
 
-    world = try World.init(worldAllocator.allocator());
+    var allocator = worldAllocator.allocator();
+    world = try World.init(allocator);
+
     const player1Id = try world.entities.new();
     const player2Id = try world.entities.new();
-    player1Component = Player.init(0, player1Id);
-    player2Component = Player.init(1, player1Id);
 
+    var player1Component = try allocator.create(Player);
+    var player2Component = try allocator.create(Player);
+    player1Component.* = Player.init(0, player1Id);
+    player2Component.* = Player.init(1, player1Id);
 
     try util.log("player1 {}", .{player1Component});
     _ = player1Component;
@@ -46,7 +48,7 @@ pub fn setup() !void {
     _ = player1Id;
     _ = player2Id;
 
-    try world.entities.setComponent(player1Id, "player", &player1Component);
+    try world.entities.setComponent(player1Id, "player", player1Component);
     const playerSystem = ( struct {
         pub fn player(adapter: *Adapter) void {
             var iter = adapter.query(&.{"player"});
@@ -71,8 +73,6 @@ pub fn update(frame_counter: u32) !void {
     if (@rem(frame_counter, 600) == 0) {
         try util.log("Frame: {} time: {}s", .{frame_counter, frame_counter / 60});
     }
-
-
     world.tick();
 }
 

@@ -10,7 +10,6 @@ pub const Player = struct {
 
 
     pub fn init(index: u16, entity: EntityID) Player {
-        util.log("init ", .{}) catch {};
         return Player{
             .index = index, 
             .entity = entity, 
