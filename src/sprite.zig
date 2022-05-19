@@ -16,12 +16,12 @@ pub fn setup(allocator: *Allocator, world: *World) !void {
 
 pub const Sprite = struct {
     // TODO this is 8x8 1bit
-    shapes: *const [3][8]u8,
+    shapes: []const u8,
     animation_frame: u16,
     width: u16,
     height: u16,
 
-    pub fn init(allocator: *Allocator, shapes: *const [3][8]u8) !*Sprite {
+    pub fn init(allocator: *Allocator, shapes: []const u8) !*Sprite {
         var sprite = try allocator.create(Sprite);
         sprite.* = Sprite{.shapes = shapes, .animation_frame = 0, .width = 8, .height = 8};
         return sprite;
@@ -46,7 +46,7 @@ const spriteSystem = ( struct {
 
 fn drawSprite(sprite: *Sprite, position: *Vec2) !void {
     w4.blit(
-        &sprite.*.shapes[sprite.animation_frame], 
+        sprite.*.shapes.ptr + sprite.animation_frame * sprite.height, 
         @floatToInt(i32, position.x), @floatToInt(i32, position.y),
         sprite.width, sprite.height, 
         w4.BLIT_1BPP

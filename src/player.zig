@@ -46,7 +46,7 @@ fn createPlayer(allocator: *Allocator, world: *World, index: u16, position: Vec2
     vel.* = velocity;
     try world.entities.setComponent(playerId, "velocity", vel);
 
-    var sprite = try Sprite.init(allocator, &shapes.smiley);
+    var sprite = try Sprite.init(allocator, shapes.smiley);
     try world.entities.setComponent(playerId, "sprite", sprite);
 }
 
