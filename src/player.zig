@@ -46,7 +46,7 @@ fn createPlayer(allocator: *Allocator, world: *World, index: u16, position: Vec2
     vel.* = velocity;
     try world.entities.setComponent(playerId, "velocity", vel);
 
-    var sprite = try Sprite.init(allocator, shapes.smiley);
+    var sprite = try Sprite.init(allocator, shapes.smiley, 3, 8, 8, 2, 0, 0, 0);
     try world.entities.setComponent(playerId, "sprite", sprite);
 }
 
@@ -181,6 +181,7 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
 
     position.* = position.*.add(velocity.*);
 
+    // stop if hitting screen right or left borders
     if (position.*.x < 0) {
         position.*.x = 0;
         if (velocity.*.x < 0) {
