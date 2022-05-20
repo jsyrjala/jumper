@@ -25,16 +25,15 @@ const drop_gravity: f32 = 0.8;
 const strong_jump_gravity: f32 = 0.2;
 const ground_y: f32 = 130 + 8;
 
-pub fn setup(allocator: *Allocator, ecs: *ECS) !void {
-    try createPlayer(allocator, ecs, 0, Vec2{.x = 10, .y = ground_y}, Vec2.zero());
+pub fn setup(ecs: *ECS) !void {
+    try createPlayer(ecs, 0, Vec2{.x = 10, .y = ground_y}, Vec2.zero());
     try util.log("player.setup()", .{});
 }
 
-fn createPlayer(allocator: *Allocator, ecs: *ECS, index: u16, position: Vec2, velocity: Vec2) !void{
-    _ = allocator;
+fn createPlayer(ecs: *ECS, index: u16, position: Vec2, velocity: Vec2) !void{
     const playerId = try ecs.createEntity();
     ecs.player[playerId] = Player.init(index);
-    ecs.sprite[playerId] = try Sprite.init_new(&shapes.ground_block, 0, 2, 0, 0);
+    ecs.sprite[playerId] = try Sprite.init_new(&shapes.smiley, 2, 0, 0, 0);
     ecs.position[playerId] = position;
     ecs.velocity[playerId] = velocity;
 }

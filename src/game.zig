@@ -9,6 +9,7 @@ const Vec2 = vector.Vec2;
 const ECS = @import("ecs.zig").ECS;
 
 const player = @import("player.zig");
+const terrain = @import("terrain.zig");
 
 var ecs: ECS = undefined;
 
@@ -22,8 +23,9 @@ pub fn setup() !void {
 
     ecs = try ECS.init(&allocator);
 
-    try sprite.setup(&allocator, &ecs);
-    try player.setup(&allocator, &ecs);
+    try sprite.setup(&ecs);
+    try terrain.setup(&ecs);
+    try player.setup(&ecs);
 
     try util.log("setup done", .{});
 

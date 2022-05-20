@@ -7,8 +7,7 @@ const w4 = @import("wasm4.zig");
 const Shape = @import("shapes.zig").Shape;
 const ECS = @import("ecs.zig").ECS;
 
-pub fn setup(allocator: *Allocator, ecs: *ECS) !void {
-    _ = allocator;
+pub fn setup(ecs: *ECS) !void {
     _ = ecs;
     try util.log("sprite.setup()", .{});
 }
