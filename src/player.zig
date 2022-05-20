@@ -43,12 +43,14 @@ pub const Player = struct {
     index: u16,
     prev_gamepad: u8,
     jump_held: bool,
+    on_ground: bool,
 
     pub fn init(index: u16) Player {
         return Player{
             .index = index, 
             .prev_gamepad = 0,
             .jump_held = false,
+            .on_ground = false,
         };
     }
 
@@ -135,7 +137,7 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
     }
 
     // jumping
-    const jumping = position.*.y < ground_y;
+    const jumping = !player.on_ground;
     var gravity = jump_gravity;
 
     if (jump_button and !jumping and !player.*.jump_held) {
@@ -186,11 +188,5 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
         if (velocity.*.x > 0) {
             velocity.*.x = 0;
         }
-    }
-    
-    // hits ground
-    if (position.*.y >= ground_y) {
-     //   position.*.y = ground_y;
-     //   velocity.*.y = math.max(0, -velocity.*.y);
     }
 }
