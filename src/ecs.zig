@@ -9,7 +9,7 @@ const Vec2 = vector.Vec2;
 
 pub const max_entities = 80;
 
-const EcsError = error {
+const EcsError = error{
     TooManyEntities,
 };
 
@@ -36,7 +36,7 @@ pub const ECS = struct {
     }
 
     pub fn createEntity(self: *ECS) !usize {
-        var i : usize = 0;
+        var i: usize = 0;
         while (i < self.alive.len) : (i += 1) {
             if (!self.alive[i]) {
                 self.alive[i] = true;

@@ -33,9 +33,8 @@ pub fn setup() !void {
 }
 
 pub fn update(frame_counter: u32) !void {
-
     if (@rem(frame_counter, 600) == 0) {
-        try util.log("Frame: {} time: {}s", .{frame_counter, frame_counter / 60});
+        try util.log("Frame: {} time: {}s", .{ frame_counter, frame_counter / 60 });
     }
     ecs.tick();
     player.playerSystem(&ecs);
@@ -45,4 +44,3 @@ pub fn update(frame_counter: u32) !void {
     //var i: f32 = -80000000.000;
     //util.log("test={} {}", .{i, std.math.isNormal(i)}) catch{};
 }
-

@@ -27,11 +27,11 @@ const ground_y: f32 = 130 + 8;
 const player_start_y: f32 = 40;
 
 pub fn setup(ecs: *ECS) !void {
-    try createPlayer(ecs, 0, Vec2{.x = 10, .y = player_start_y}, Vec2.zero());
+    try createPlayer(ecs, 0, Vec2{ .x = 10, .y = player_start_y }, Vec2.zero());
     try util.log("player.setup()", .{});
 }
 
-fn createPlayer(ecs: *ECS, index: u16, position: Vec2, velocity: Vec2) !void{
+fn createPlayer(ecs: *ECS, index: u16, position: Vec2, velocity: Vec2) !void {
     const playerId = try ecs.createEntity();
     ecs.player[playerId] = Player.init(index);
     ecs.sprite[playerId] = try Sprite.init_new(&shapes.smiley, 2, 0, 0, 0);
@@ -47,7 +47,7 @@ pub const Player = struct {
 
     pub fn init(index: u16) Player {
         return Player{
-            .index = index, 
+            .index = index,
             .prev_gamepad = 0,
             .jump_held = false,
             .on_ground = false,
@@ -83,7 +83,6 @@ const Input = struct {
     changed: bool,
 };
 
-
 pub fn playerSystem(ecs: *ECS) void {
     var entityId: usize = 0;
     while (entityId < ecs.max_entities) : (entityId += 1) {
@@ -93,13 +92,9 @@ pub fn playerSystem(ecs: *ECS) void {
         if (ecs.player[entityId] != null and
             ecs.position[entityId] != null and
             ecs.velocity[entityId] != null and
-            ecs.sprite[entityId] != null) {
-            updatePlayer(
-                &(ecs.player[entityId] orelse unreachable),
-                &(ecs.position[entityId] orelse unreachable),
-                &(ecs.velocity[entityId] orelse unreachable),
-                &(ecs.sprite[entityId] orelse unreachable)
-            ) catch |e| {
+            ecs.sprite[entityId] != null)
+        {
+            updatePlayer(&(ecs.player[entityId] orelse unreachable), &(ecs.position[entityId] orelse unreachable), &(ecs.velocity[entityId] orelse unreachable), &(ecs.sprite[entityId] orelse unreachable)) catch |e| {
                 util.log("PlayerSystem: Failure {}", .{e}) catch {};
             };
         }
@@ -118,20 +113,20 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
         sprite.animation_frame = 2;
         if (run_button) {
             // running
-            acceleration = Vec2{.x = -run_acceleration, .y = 0};
+            acceleration = Vec2{ .x = -run_acceleration, .y = 0 };
             max_speed = max_run_speed;
         } else {
-            acceleration = Vec2{.x = -walk_acceleration, .y = 0};
+            acceleration = Vec2{ .x = -walk_acceleration, .y = 0 };
             max_speed = max_walk_speed;
         }
     } else if (input.right) {
         sprite.animation_frame = 1;
         if (run_button) {
             // running
-            acceleration = Vec2{.x = run_acceleration, .y = 0};
+            acceleration = Vec2{ .x = run_acceleration, .y = 0 };
             max_speed = max_run_speed;
         } else {
-            acceleration = Vec2{.x = walk_acceleration, .y = 0};
+            acceleration = Vec2{ .x = walk_acceleration, .y = 0 };
             max_speed = max_walk_speed;
         }
     }
@@ -158,9 +153,13 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
     if (jumping and velocity.*.y > 0) {
         gravity = drop_gravity;
     }
-    acceleration = acceleration.add(Vec2{.x = 0, .y = gravity});
+    acceleration = acceleration.add(Vec2{ .x = 0, .y = gravity });
 
     velocity.* = velocity.*.add(acceleration);
+
+    if (!player.on_ground and velocity.y > 0) {
+        sprite.animation_frame = 3;
+    }
 
     // not pressing any buttons => slow down
     if (!input.left and !input.right) {

@@ -9,11 +9,11 @@ pub const Vec2 = struct {
     pub fn format(self: Vec2, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
         _ = fmt;
         _ = options;
-        return std.fmt.format(writer, "Vec2({d:0.3},{d:0.3})", .{self.x, self.y});
+        return std.fmt.format(writer, "Vec2({d:0.3},{d:0.3})", .{ self.x, self.y });
     }
 
     pub fn zero() Vec2 {
-        return Vec2{.x = 0, .y =0};
+        return Vec2{ .x = 0, .y = 0 };
     }
 
     pub fn length(self: Vec2) f32 {
@@ -39,7 +39,7 @@ pub const Vec2 = struct {
     }
 
     pub fn negate(self: Vec2) Vec2 {
-        return Vec2{.x = self.x * -1, .y = self.y * -1};
+        return Vec2{ .x = self.x * -1, .y = self.y * -1 };
     }
 
     pub fn scale(self: Vec2, scalar: f32) Vec2 {
@@ -64,10 +64,7 @@ pub const Vec2 = struct {
     }
 
     pub fn multiply(self: Vec2, other: Vec2) Vec2 {
-        return Vec2 {
-            .x = self.x * other.x,
-            .y = self.y * other.y
-        };
+        return Vec2{ .x = self.x * other.x, .y = self.y * other.y };
     }
 
     pub fn dot(self: Vec2, other: Vec2) f32 {
@@ -75,29 +72,24 @@ pub const Vec2 = struct {
     }
 
     pub fn reflect(self: Vec2, normal: Vec2) Vec2 {
-       return self.add(normal.scale(-1).scale(2 * self.dot(normal)));
+        return self.add(normal.scale(-1).scale(2 * self.dot(normal)));
     }
 
     pub fn clampX(self: Vec2, min: f32, max: f32) Vec2 {
-        return Vec2{.x = math.clamp(self.x, min, max), .y = self.y};
+        return Vec2{ .x = math.clamp(self.x, min, max), .y = self.y };
     }
 
     pub fn clampY(self: Vec2, min: f32, max: f32) Vec2 {
-        return Vec2{.x = self.x, .y = math.clamp(self.y, min, max)};
+        return Vec2{ .x = self.x, .y = math.clamp(self.y, min, max) };
     }
-
 };
-
 
 pub const Rect = struct {
     position: Vec2,
     size: Vec2,
 
     pub fn move(rect: *Rect, delta: Vec2) Rect {
-        return Rect {
-            .position = rect.position.add(delta),
-            .size = rect.size
-        };
+        return Rect{ .position = rect.position.add(delta), .size = rect.size };
     }
 
     pub fn rectOverlap(rectA: *Rect, rectB: Rect) ?Rect {
@@ -111,9 +103,9 @@ pub const Rect = struct {
         if (intersectionY2 < intersectionY1) {
             return null;
         }
-        return Rect {
-            .position = Vec2 {.x = intersectionX1, .y = intersectionY1 },
-            .size = Vec2 {.x = intersectionX2 - intersectionX1, .y = intersectionY2 - intersectionY1 },
+        return Rect{
+            .position = Vec2{ .x = intersectionX1, .y = intersectionY1 },
+            .size = Vec2{ .x = intersectionX2 - intersectionX1, .y = intersectionY2 - intersectionY1 },
         };
     }
 
@@ -145,7 +137,7 @@ pub const Rect = struct {
             } else {
                 normal = Vec2{ .x = 1, .y = 0 };
             }
-        } 
+        }
         // corner hits, ball center out side of player x or y range, point normal to diagonals
         else if (ballCenter.y <= player.position.y) {
             if (ballCenter.x < player.position.x) {
@@ -168,9 +160,7 @@ pub const Rect = struct {
         }
         return normal.normalize();
     }
-
 };
-
 
 /// Linear interpolation between a b.
 /// t is parametric value. 
