@@ -27,7 +27,7 @@ pub fn setup() !void {
     try sprite.setup(&ecs);
     try terrain.setup(&ecs);
     try player.setup(&ecs);
-    try obstacle.setup(&ecs);
+    try obstacle.setup(&ecs, &allocator);
 
     try util.log("setup done", .{});
 }
