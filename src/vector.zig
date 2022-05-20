@@ -1,9 +1,16 @@
-const math = @import("std").math;
+const std = @import("std");
+const math = std.math;
 const util = @import("util.zig");
 
 pub const Vec2 = struct {
     x: f32,
     y: f32,
+
+    pub fn format(self: Vec2, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        _ = fmt;
+        _ = options;
+        return std.fmt.format(writer, "Vec2({d:0.3},{d:0.3})", .{self.x, self.y});
+    }
 
     pub fn zero() Vec2 {
         return Vec2{.x = 0, .y =0};
@@ -11,6 +18,10 @@ pub const Vec2 = struct {
 
     pub fn length(self: Vec2) f32 {
         return math.hypot(f32, self.x, self.y);
+    }
+
+    pub fn manhattan(self: Vec2) f32 {
+        return math.fabs(self.x) + math.fabs(self.y);
     }
 
     pub fn normalize(self: Vec2) Vec2 {

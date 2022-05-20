@@ -10,10 +10,11 @@ const ECS = @import("ecs.zig").ECS;
 
 const player = @import("player.zig");
 const terrain = @import("terrain.zig");
+const obstacle = @import("obstacle.zig");
 
 var ecs: ECS = undefined;
 
-var buffer: [30000]u8 = undefined;
+var buffer: [15000]u8 = undefined;
 var worldAllocator = std.heap.FixedBufferAllocator.init(&buffer);
 
 pub fn setup() !void {
@@ -26,10 +27,9 @@ pub fn setup() !void {
     try sprite.setup(&ecs);
     try terrain.setup(&ecs);
     try player.setup(&ecs);
+    try obstacle.setup(&ecs);
 
     try util.log("setup done", .{});
-
-    
 }
 
 pub fn update(frame_counter: u32) !void {
@@ -39,6 +39,10 @@ pub fn update(frame_counter: u32) !void {
     }
     ecs.tick();
     player.playerSystem(&ecs);
+    obstacle.collisionSystem(&ecs);
     sprite.spriteSystem(&ecs);
+
+    //var i: f32 = -80000000.000;
+    //util.log("test={} {}", .{i, std.math.isNormal(i)}) catch{};
 }
 

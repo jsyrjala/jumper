@@ -3,10 +3,11 @@ const Allocator = std.mem.Allocator;
 
 const Player = @import("player.zig").Player;
 const Sprite = @import("sprite.zig").Sprite;
+const Obstacle = @import("obstacle.zig").Obstacle;
 const vector = @import("vector.zig");
 const Vec2 = vector.Vec2;
 
-pub const max_entities = 200;
+pub const max_entities = 80;
 
 const EcsError = error {
     TooManyEntities,
@@ -16,6 +17,7 @@ pub const ECS = struct {
     max_entities: usize,
     alive: []bool,
     player: []?Player,
+    obstacle: []?Obstacle,
     sprite: []?Sprite,
     position: []?Vec2,
     velocity: []?Vec2,
@@ -26,6 +28,7 @@ pub const ECS = struct {
             .max_entities = max_entities,
             .alive = try allocator.alloc(bool, max_entities),
             .player = try allocator.alloc(?Player, max_entities),
+            .obstacle = try allocator.alloc(?Obstacle, max_entities),
             .sprite = try allocator.alloc(?Sprite, max_entities),
             .position = try allocator.alloc(?Vec2, max_entities),
             .velocity = try allocator.alloc(?Vec2, max_entities),
@@ -48,6 +51,7 @@ pub const ECS = struct {
         }
         self.alive[entityId] = false;
         self.player[entityId] = null;
+        self.obstacle[entityId] = null;
         self.sprite[entityId] = null;
         self.position[entityId] = null;
         self.velocity[entityId] = null;

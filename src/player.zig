@@ -24,9 +24,10 @@ const jump_gravity: f32 = 0.6;
 const drop_gravity: f32 = 0.8;
 const strong_jump_gravity: f32 = 0.2;
 const ground_y: f32 = 130 + 8;
+const player_start_y: f32 = 40;
 
 pub fn setup(ecs: *ECS) !void {
-    try createPlayer(ecs, 0, Vec2{.x = 10, .y = ground_y}, Vec2.zero());
+    try createPlayer(ecs, 0, Vec2{.x = 10, .y = player_start_y}, Vec2.zero());
     try util.log("player.setup()", .{});
 }
 
@@ -170,7 +171,7 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
         }
     }
 
-    position.* = position.*.add(velocity.*);
+    //position.* = position.*.add(velocity.*);
 
     // stop if hitting screen right or left borders
     if (position.*.x < 0) {
@@ -186,10 +187,10 @@ fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Spri
             velocity.*.x = 0;
         }
     }
-
+    
     // hits ground
     if (position.*.y >= ground_y) {
-        position.*.y = ground_y;
-        velocity.*.y = math.max(0, -velocity.*.y);
+     //   position.*.y = ground_y;
+     //   velocity.*.y = math.max(0, -velocity.*.y);
     }
 }

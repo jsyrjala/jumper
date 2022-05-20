@@ -6,6 +6,7 @@ const util = @import("util.zig");
 const w4 = @import("wasm4.zig");
 const Shape = @import("shapes.zig").Shape;
 const ECS = @import("ecs.zig").ECS;
+const collision_resolve = @import("collision_resolve.zig");
 
 pub fn setup(ecs: *ECS) !void {
     _ = ecs;
@@ -31,7 +32,6 @@ pub const Sprite = struct {
         };
     }
 
-
     pub fn init(
         allocator: *Allocator, shape: *const Shape,
         color1: u4, color2: u4, color3: u4, color4: u4) !*Sprite {
@@ -42,6 +42,10 @@ pub const Sprite = struct {
             .color1 = color1, .color2 = color2, .color3 = color3, .color4 = color4,
         };
         return sprite;
+    }
+
+    pub fn size(self: *Sprite) Vec2 {
+        return Vec2{.x = @intToFloat(f32, self.width), .y = @intToFloat(f32, self.height)};
     }
 };
 
@@ -55,8 +59,8 @@ pub fn spriteSystem(ecs: *ECS) void {
         if (ecs.sprite[entityId] != null and 
             ecs.position[entityId] != null) {
             drawSprite(
-                ecs.sprite[entityId] orelse unreachable, 
-                ecs.position[entityId] orelse unreachable
+                &(ecs.sprite[entityId] orelse unreachable), 
+                &(ecs.position[entityId] orelse unreachable)
             ) catch |e| {
                 util.log("SpriteSystem: Failure {}", .{e}) catch {};
             };
@@ -64,7 +68,7 @@ pub fn spriteSystem(ecs: *ECS) void {
     }
 }
 
-fn drawSprite(sprite: Sprite, position: Vec2) !void {
+fn drawSprite(sprite: *Sprite, position: *Vec2) !void {
     w4.DRAW_COLORS.* = (@as(u16, sprite.color4) << 12) + (@as(u16, sprite.color3) << 8) + (@as(u16, sprite.color2) << 4) + sprite.color1;
     w4.blit(
         sprite.shape.pixel_data.ptr + sprite.animation_frame * sprite.height, 

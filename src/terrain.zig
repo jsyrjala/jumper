@@ -6,6 +6,8 @@ const util = @import("util.zig");
 const vector = @import("vector.zig");
 const Vec2 = vector.Vec2;
 const Sprite = @import("sprite.zig").Sprite;
+const Obstacle = @import("obstacle.zig").Obstacle;
+
 const shapes = @import("shapes.zig");
 
 const ECS = @import("ecs.zig").ECS;
@@ -16,6 +18,9 @@ pub fn setup(ecs: *ECS) !void {
     try createTerrain(ecs, Vec2{.x = 70, .y = 80}, 3);
 
     try createTerrain(ecs, Vec2{.x = 30, .y = 60}, 3);
+
+    try createTerrain(ecs, Vec2{.x = 100, .y = 120}, 3);
+
 
     try createTerrain(ecs, Vec2{.x = 140, .y = 60}, 1);
     try createTerrain(ecs, Vec2{.x = 140, .y = 67}, 1);
@@ -34,5 +39,6 @@ fn createTerrain(ecs: *ECS, position: Vec2, blocks: u16) !void{
         const sprite = try Sprite.init_new(&shapes.ground_block, 4, 3, 2, 0);
         ecs.sprite[id] = sprite;
         ecs.position[id] = position.add(Vec2{ .x = @intToFloat(f32, i * sprite.width), .y = 0});
+        ecs.obstacle[id] = Obstacle{};
     }
 }
