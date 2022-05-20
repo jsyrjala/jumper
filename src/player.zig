@@ -9,9 +9,8 @@ const shapes = @import("shapes.zig");
 
 const w4 = @import("wasm4.zig");
 
-const World = @import("ecs/systems.zig").World;
-const EntityID = @import("ecs/entities.zig").EntityID;
-const Adapter = @import("ecs/systems.zig").Adapter;
+const ECS = @import("ecs.zig").ECS;
+
 const util = @import("util.zig");
 
 const max_walk_speed: f32 = 1;
@@ -26,40 +25,28 @@ const drop_gravity: f32 = 0.8;
 const strong_jump_gravity: f32 = 0.2;
 const ground_y: f32 = 130 + 8;
 
-pub fn setup(allocator: *Allocator, world: *World) !void {
-    try createPlayer(allocator, world, 0, Vec2{.x = 10, .y = ground_y}, Vec2.zero());
-    try world.register("player", playerSystem);
+pub fn setup(allocator: *Allocator, ecs: *ECS) !void {
+    try createPlayer(allocator, ecs, 0, Vec2{.x = 10, .y = ground_y}, Vec2.zero());
+    try util.log("player.setup()", .{});
 }
 
-fn createPlayer(allocator: *Allocator, world: *World, index: u16, position: Vec2, velocity: Vec2) !void{
-    const playerId = try world.entities.new();
-
-    var player = try allocator.create(Player);
-    player.* = Player.init(index, playerId);
-    try world.entities.setComponent(playerId, "player", player);
-
-    var pos = try allocator.create(Vec2);
-    pos.* = position;
-    try world.entities.setComponent(playerId, "position", pos);
-
-    var vel = try allocator.create(Vec2);
-    vel.* = velocity;
-    try world.entities.setComponent(playerId, "velocity", vel);
-
-    var sprite = try Sprite.init(allocator, &shapes.ground_block, 0, 2, 0, 0);
-    try world.entities.setComponent(playerId, "sprite", sprite);
+fn createPlayer(allocator: *Allocator, ecs: *ECS, index: u16, position: Vec2, velocity: Vec2) !void{
+    _ = allocator;
+    const playerId = try ecs.createEntity();
+    ecs.player[playerId] = Player.init(index);
+    ecs.sprite[playerId] = try Sprite.init_new(&shapes.ground_block, 0, 2, 0, 0);
+    ecs.position[playerId] = position;
+    ecs.velocity[playerId] = velocity;
 }
 
 pub const Player = struct {
     index: u16,
-    entity: EntityID,
     prev_gamepad: u8,
     jump_held: bool,
 
-    pub fn init(index: u16, entity: EntityID) Player {
+    pub fn init(index: u16) Player {
         return Player{
             .index = index, 
-            .entity = entity,
             .prev_gamepad = 0,
             .jump_held = false,
         };
@@ -95,22 +82,27 @@ const Input = struct {
 };
 
 
-// struct needed for closure?
-const playerSystem = ( struct {
-    pub fn playerFunc(adapter: *Adapter) void {
-        var iter = adapter.query(&.{"player", "position", "velocity"});
-        while (iter.next()) |row| {
-            defer row.unlock();
-            var player = adapter.world.entities.getComponent(row.entity, "player", *Player) orelse unreachable;
-            var position = adapter.world.entities.getComponent(row.entity, "position", *Vec2) orelse unreachable;
-            var velocity = adapter.world.entities.getComponent(row.entity, "velocity", *Vec2) orelse unreachable;
-            var sprite = adapter.world.entities.getComponent(row.entity, "sprite", *Sprite) orelse unreachable;
-            updatePlayer(player, position, velocity, sprite) catch |e| {
+pub fn playerSystem(ecs: *ECS) void {
+    var entityId: usize = 0;
+    while (entityId < ecs.max_entities) : (entityId += 1) {
+        if (!ecs.alive[entityId]) {
+            return;
+        }
+        if (ecs.player[entityId] != null and
+            ecs.position[entityId] != null and
+            ecs.velocity[entityId] != null and
+            ecs.sprite[entityId] != null) {
+            updatePlayer(
+                &(ecs.player[entityId] orelse unreachable),
+                &(ecs.position[entityId] orelse unreachable),
+                &(ecs.velocity[entityId] orelse unreachable),
+                &(ecs.sprite[entityId] orelse unreachable)
+            ) catch |e| {
                 util.log("PlayerSystem: Failure {}", .{e}) catch {};
             };
         }
     }
-}).playerFunc;
+}
 
 fn updatePlayer(player: *Player, position: *Vec2, velocity: *Vec2, sprite: *Sprite) !void {
     const input = player.input();
