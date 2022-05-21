@@ -1,4 +1,3 @@
-const std = @import("std");
 const w4 = @import("wasm4.zig");
 
 /// Draw text with, with optional background rectangle

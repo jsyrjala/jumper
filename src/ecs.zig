@@ -7,7 +7,7 @@ const Obstacle = @import("obstacle.zig").Obstacle;
 const vector = @import("vector.zig");
 const Vec2 = vector.Vec2;
 
-pub const max_entities = 150;
+pub const max_entities = 90;
 
 const EcsError = error{
     TooManyEntities,

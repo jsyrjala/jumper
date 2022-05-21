@@ -9,16 +9,17 @@ jobs:
         run: npm install -g wasm4
       - uses: goto-bus-stop/setup-zig@v1
         with:
-          version: 0.10.0-dev.2276+3fde14035
+          version: 0.9.1
       - run: zig version
       - run: zig build -Drelease-small=true
-      # zig-out/lib/cart.wasm
+      - run: ls -l zig-out/lib/cart.wasm
+      - run: w4 bundle --html zig-out/index.html --title Jumper --description "Simple platformer" zig-out/lib/cart.wasm
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: goto-bus-stop/setup-zig@v1
         with:
-          version: 0.10.0-dev.2276+3fde14035
+          version: 0.9.1
       - run: zig fmt --check src/*.zig
 

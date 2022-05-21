@@ -14,7 +14,7 @@ const obstacle = @import("obstacle.zig");
 
 var ecs: ECS = undefined;
 
-var buffer: [15000]u8 = undefined;
+var buffer: [9000]u8 = undefined;
 var worldAllocator = std.heap.FixedBufferAllocator.init(&buffer);
 
 pub fn setup() !void {

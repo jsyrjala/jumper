@@ -73,10 +73,10 @@ pub const CollisionRect = struct {
         if (t_near.x > t_far.y or t_near.y > t_far.x) return null;
 
         // Closest 'time' will be the first contact
-        const t_hit_near: f32 = math.max(t_near.x, t_near.y);
+        const t_hit_near: f32 = @maximum(t_near.x, t_near.y);
 
         // Furthest 'time' is contact on opposite side of target
-        const t_hit_far: f32 = math.min(t_far.x, t_far.y);
+        const t_hit_far: f32 = @minimum(t_far.x, t_far.y);
 
         // Reject if ray direction is pointing away from object
         if (t_hit_far < 0) return null;
