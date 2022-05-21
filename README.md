@@ -2,6 +2,8 @@
 
 A game written in [Zig](https://ziglang.org/) for the [WASM-4](https://wasm4.org) fantasy console.
 
+Running in https://jsyrjala.github.io/jumper/
+
 ## Development
 
 ```shell
