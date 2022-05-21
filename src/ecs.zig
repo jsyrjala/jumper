@@ -7,7 +7,7 @@ const Obstacle = @import("obstacle.zig").Obstacle;
 const vector = @import("vector.zig");
 const Vec2 = vector.Vec2;
 
-pub const max_entities = 60;
+pub const max_entities = 150;
 
 const EcsError = error{
     TooManyEntities,
@@ -21,8 +21,9 @@ pub const ECS = struct {
     sprite: []?Sprite,
     position: []?Vec2,
     velocity: []?Vec2,
+    entity_count: u16,
 
-    pub fn init(allocator: *Allocator) !ECS {
+    pub fn init(allocator: Allocator) !ECS {
         _ = allocator;
         return ECS{
             .max_entities = max_entities,
@@ -32,6 +33,7 @@ pub const ECS = struct {
             .sprite = try allocator.alloc(?Sprite, max_entities),
             .position = try allocator.alloc(?Vec2, max_entities),
             .velocity = try allocator.alloc(?Vec2, max_entities),
+            .entity_count = 0,
         };
     }
 
@@ -40,6 +42,7 @@ pub const ECS = struct {
         while (i < self.alive.len) : (i += 1) {
             if (!self.alive[i]) {
                 self.alive[i] = true;
+                self.entity_count += 1;
                 return i;
             }
         }
@@ -55,6 +58,7 @@ pub const ECS = struct {
         self.sprite[entityId] = null;
         self.position[entityId] = null;
         self.velocity[entityId] = null;
+        self.entity_count -= 1;
     }
 
     pub fn tick(self: *ECS) void {

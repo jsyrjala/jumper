@@ -83,7 +83,7 @@ const Input = struct {
     changed: bool,
 };
 
-pub fn playerSystem(ecs: *ECS) void {
+pub fn playerSystem(ecs: *ECS) !void {
     var entityId: usize = 0;
     while (entityId < ecs.max_entities) : (entityId += 1) {
         if (!ecs.alive[entityId]) {

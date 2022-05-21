@@ -22,25 +22,22 @@ pub fn setup() !void {
     colors.setup();
     var allocator = worldAllocator.allocator();
 
-    ecs = try ECS.init(&allocator);
+    ecs = try ECS.init(allocator);
 
     try sprite.setup(&ecs);
     try terrain.setup(&ecs);
     try player.setup(&ecs);
-    try obstacle.setup(&ecs, &allocator);
+    try obstacle.setup(&ecs, allocator);
 
     try util.log("setup done", .{});
 }
 
 pub fn update(frame_counter: u32) !void {
     if (@rem(frame_counter, 600) == 0) {
-        try util.log("Frame: {} time: {}s", .{ frame_counter, frame_counter / 60 });
+        try util.log("Frame: {} time: {}s entities: {}", .{ frame_counter, frame_counter / 60, ecs.entity_count });
     }
     ecs.tick();
-    player.playerSystem(&ecs);
-    obstacle.collisionSystem(&ecs);
-    sprite.spriteSystem(&ecs);
-
-    //var i: f32 = -80000000.000;
-    //util.log("test={} {}", .{i, std.math.isNormal(i)}) catch{};
+    try player.playerSystem(&ecs);
+    try obstacle.collisionSystem(&ecs);
+    try sprite.spriteSystem(&ecs);
 }

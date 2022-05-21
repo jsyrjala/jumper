@@ -59,7 +59,7 @@ pub const Sprite = struct {
     }
 };
 
-pub fn spriteSystem(ecs: *ECS) void {
+pub fn spriteSystem(ecs: *ECS) !void {
     var entityId: usize = 0;
     while (entityId < ecs.max_entities) : (entityId += 1) {
         if (!ecs.alive[entityId]) {

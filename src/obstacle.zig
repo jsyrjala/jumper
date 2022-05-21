@@ -9,59 +9,89 @@ const CollisionRect = collision_resolve.CollisionRect;
 const Collision = collision_resolve.Collision;
 const Vec2 = @import("vector.zig").Vec2;
 
-var resolve_array: []Collision = undefined;
+var collisions: std.ArrayList(CollidingObstacle) = undefined;
 
-pub fn setup(ecs: *ECS, allocator: *Allocator) !void {
+const CollidingObstacle = struct {
+    obstacle_id: usize,
+    t_hit_near: f32,
+};
+
+pub fn setup(ecs: *ECS, allocator: Allocator) !void {
     _ = ecs;
-    _ = allocator;
     try util.log("obstacle.setup()", .{});
+    collisions = try std.ArrayList(CollidingObstacle).initCapacity(allocator, 8);
 }
 
 pub const Obstacle = struct {};
 
-pub fn collisionSystem(ecs: *ECS) void {
+pub fn collisionSystem(ecs: *ECS) !void {
     // clear sort array not needed actually
-    var playerId: usize = 0;
-    while (playerId < ecs.max_entities) : (playerId += 1) {
-        if (!isPlayer(ecs, playerId)) {
+    var player_id: usize = 0;
+    while (player_id < ecs.max_entities) : (player_id += 1) {
+        if (!isPlayer(ecs, player_id)) {
             continue;
         }
-        ecs.player[playerId].?.on_ground = false;
-        // TODO gather all obstacles to resolve_array
+        collisions.clearRetainingCapacity();
+        ecs.player[player_id].?.on_ground = false;
+        // TODO gather all obstacles to collision_array
         // we need to resolve collisions nearest collision point first
-        var obstacleId: usize = 0;
-        while (obstacleId < ecs.max_entities) : (obstacleId += 1) {
-            if (!isObstacle(ecs, obstacleId)) {
+        var obstacle_id: usize = 0;
+        while (obstacle_id < ecs.max_entities) : (obstacle_id += 1) {
+            if (!isObstacle(ecs, obstacle_id)) {
                 continue;
             }
-            resolveCollision(ecs, playerId, obstacleId);
+            const collision = computeCollision(ecs, player_id, obstacle_id);
+            if (collision != null) {
+                try collisions.append(CollidingObstacle{
+                    .obstacle_id = obstacle_id,
+                    .t_hit_near = collision.?.t_hit_near,
+                });
+            }
         }
-        ecs.position[playerId] = ecs.position[playerId].?.add(ecs.velocity[playerId].?);
+        std.sort.sort(CollidingObstacle, collisions.items, {}, closestFirst);
+        for (collisions.items) |collision| {
+            resolveCollision(ecs, player_id, collision.obstacle_id);
+        }
+        ecs.position[player_id] = ecs.position[player_id].?.add(ecs.velocity[player_id].?);
     }
 }
 
-fn isPlayer(ecs: *ECS, entityId: usize) bool {
-    return ecs.alive[entityId] and ecs.player[entityId] != null;
+fn closestFirst(player_pos: void, lhs: CollidingObstacle, rhs: CollidingObstacle) bool {
+    _ = player_pos;
+    if (lhs.t_hit_near != rhs.t_hit_near) {
+        return lhs.t_hit_near < rhs.t_hit_near;
+    }
+    return false;
 }
 
-fn isObstacle(ecs: *ECS, entityId: usize) bool {
-    return ecs.alive[entityId] and ecs.obstacle[entityId] != null;
+fn isPlayer(ecs: *ECS, entity_id: usize) bool {
+    return ecs.alive[entity_id] and ecs.player[entity_id] != null;
 }
 
-fn resolveCollision(ecs: *ECS, playerId: usize, obstacleId: usize) void {
-    var playerPos = ecs.position[playerId].?;
-    var playerSprite = ecs.sprite[playerId].?;
-    var playerVelocity = ecs.velocity[playerId].?;
+fn isObstacle(ecs: *ECS, entity_id: usize) bool {
+    return ecs.alive[entity_id] and ecs.obstacle[entity_id] != null;
+}
 
-    var obstaclePos = ecs.position[obstacleId].?;
-    var obstacleSprite = ecs.sprite[obstacleId].?;
+fn computeCollision(ecs: *ECS, player_id: usize, obstacle_id: usize) ?Collision {
+    var playerPos = ecs.position[player_id].?;
+    var playerSprite = ecs.sprite[player_id].?;
+    var playerVelocity = ecs.velocity[player_id].?;
 
-    //const diff = playerPos.subtract(obstaclePos);
-    //const distance = diff.manhattan();
-    // quick and dirty optimization
-    //if (distance > 50) {
-    //    return;
-    //}
+    var obstaclePos = ecs.position[obstacle_id].?;
+    var obstacleSprite = ecs.sprite[obstacle_id].?;
+
+    const playerRect = CollisionRect.init(playerPos, playerSprite.size(), playerVelocity);
+    const obstacleRect = CollisionRect.init(obstaclePos, obstacleSprite.size(), Vec2.zero());
+    return playerRect.resolveDynamicRectCollision(obstacleRect);
+}
+
+fn resolveCollision(ecs: *ECS, player_id: usize, obstacle_id: usize) void {
+    var playerPos = ecs.position[player_id].?;
+    var playerSprite = ecs.sprite[player_id].?;
+    var playerVelocity = ecs.velocity[player_id].?;
+
+    var obstaclePos = ecs.position[obstacle_id].?;
+    var obstacleSprite = ecs.sprite[obstacle_id].?;
 
     const playerRect = CollisionRect.init(playerPos, playerSprite.size(), playerVelocity);
     const obstacleRect = CollisionRect.init(obstaclePos, obstacleSprite.size(), Vec2.zero());
@@ -69,11 +99,11 @@ fn resolveCollision(ecs: *ECS, playerId: usize, obstacleId: usize) void {
     if (collision != null) {
         const resolve = collision.?.resolve;
         if (resolve != null) {
-            const orig_velocity = ecs.velocity[playerId].?;
-            ecs.velocity[playerId] = orig_velocity.add(resolve.?);
+            const orig_velocity = ecs.velocity[player_id].?;
+            ecs.velocity[player_id] = orig_velocity.add(resolve.?);
         }
         if (collision.?.contact_normal.y < -0) {
-            ecs.player[playerId].?.on_ground = true;
+            ecs.player[player_id].?.on_ground = true;
         }
     }
 }

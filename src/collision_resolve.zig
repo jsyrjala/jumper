@@ -131,15 +131,15 @@ pub const CollisionRect = struct {
     // Also this assumes that the another rectangle is static
     pub fn resolveDynamicRectCollision(dynamic: CollisionRect, static: CollisionRect) ?Collision {
         var collision = dynamic.collidesDynamicRect(static);
-        if (collision != null) {
-            // calculate
-            //const resolve = collision.?.contact_normal.multiply(dynamic.velocity).scale(1.0 - collision.?.t_hit_near);
-            const abs_velocity = Vec2{ .x = math.fabs(dynamic.velocity.x), .y = math.fabs(dynamic.velocity.y) };
-            const resolve = collision.?.contact_normal.multiply(abs_velocity).scale(1.0 - collision.?.t_hit_near);
-            collision.?.resolve = resolve;
-            return collision;
+        if (collision == null) {
+            return null;
         }
-        return null;
+        // calculate
+        //const resolve = collision.?.contact_normal.multiply(dynamic.velocity).scale(1.0 - collision.?.t_hit_near);
+        const abs_velocity = Vec2{ .x = math.fabs(dynamic.velocity.x), .y = math.fabs(dynamic.velocity.y) };
+        const resolve = collision.?.contact_normal.multiply(abs_velocity).scale(1.0 - collision.?.t_hit_near);
+        collision.?.resolve = resolve;
+        return collision;
     }
 };
 
