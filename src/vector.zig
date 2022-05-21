@@ -163,7 +163,7 @@ pub const Rect = struct {
 };
 
 /// Linear interpolation between a b.
-/// t is parametric value. 
+/// t is parametric value.
 pub fn lerp(t: f32, a: f32, b: f32) f32 {
     return (b - a) * t + a;
 }
