@@ -46,8 +46,8 @@ pub const CollisionRect = struct {
         // Fix divide by zero if ray_dir.x or ray_dir.y is exactly 0
         const epsilon = 0.0000001;
         const inv_dir = Vec2{
-            .x = 1.0 / if (math.fabs(ray_dir.x) > epsilon) ray_dir.x else epsilon,
-            .y = 1.0 / if (math.fabs(ray_dir.y) > epsilon) ray_dir.y else epsilon,
+            .x = 1.0 / if (@fabs(ray_dir.x) > epsilon) ray_dir.x else epsilon,
+            .y = 1.0 / if (@fabs(ray_dir.y) > epsilon) ray_dir.y else epsilon,
         };
 
         // Calculate intersections with rectangle bounding axes
@@ -73,10 +73,10 @@ pub const CollisionRect = struct {
         if (t_near.x > t_far.y or t_near.y > t_far.x) return null;
 
         // Closest 'time' will be the first contact
-        const t_hit_near: f32 = math.max(t_near.x, t_near.y);
+        const t_hit_near: f32 = @maximum(t_near.x, t_near.y);
 
         // Furthest 'time' is contact on opposite side of target
-        const t_hit_far: f32 = math.min(t_far.x, t_far.y);
+        const t_hit_far: f32 = @minimum(t_far.x, t_far.y);
 
         // Reject if ray direction is pointing away from object
         if (t_hit_far < 0) return null;
@@ -136,7 +136,7 @@ pub const CollisionRect = struct {
         }
         // calculate
         //const resolve = collision.?.contact_normal.multiply(dynamic.velocity).scale(1.0 - collision.?.t_hit_near);
-        const abs_velocity = Vec2{ .x = math.fabs(dynamic.velocity.x), .y = math.fabs(dynamic.velocity.y) };
+        const abs_velocity = Vec2{ .x = @fabs(dynamic.velocity.x), .y = @fabs(dynamic.velocity.y) };
         const resolve = collision.?.contact_normal.multiply(abs_velocity).scale(1.0 - collision.?.t_hit_near);
         collision.?.resolve = resolve;
         return collision;
@@ -169,8 +169,8 @@ test "collidesRay" {
     std.debug.print("\n\n", .{});
 
     const rect1 = CollisionRect.init(Vec2{ .x = 10, .y = 12 }, Vec2{ .x = 3, .y = 4 }, Vec2.zero());
-    try expectEqual(false, rect1.collidesRay(Vec2.zero(), Vec2{ .x = -1, .y = -1 }));
-    try expectEqual(true, rect1.collidesRay(Vec2.zero(), Vec2{ .x = 1, .y = 1 }));
-    try expectEqual(false, rect1.collidesRay(Vec2.zero(), Vec2{ .x = 1, .y = -1 }));
-    try expectEqual(false, rect1.collidesRay(Vec2.zero(), Vec2{ .x = 0, .y = 0 }));
+    try expectEqual(false, rect1.collidesRay(Vec2.zero(), Vec2{ .x = -1, .y = -1 }) == null);
+    try expectEqual(true, rect1.collidesRay(Vec2.zero(), Vec2{ .x = 1, .y = 1 }) != null);
+    try expectEqual(false, rect1.collidesRay(Vec2.zero(), Vec2{ .x = 1, .y = -1 }) == null);
+    try expectEqual(false, rect1.collidesRay(Vec2.zero(), Vec2{ .x = 0, .y = 0 }) == null);
 }
