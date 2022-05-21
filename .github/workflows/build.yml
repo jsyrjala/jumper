@@ -13,7 +13,31 @@ jobs:
       - run: zig version
       - run: zig build -Drelease-small=true
       - run: ls -l zig-out/lib/cart.wasm
-      - run: w4 bundle --html zig-out/index.html --title Jumper --description "Simple platformer" zig-out/lib/cart.wasm
+      - run: mkdir -p zig-out/bundle
+      - run: w4 bundle --html zig-out/bundle/index.html --title Jumper --description "Simple platformer" zig-out/lib/cart.wasm
+
+  build-and-deploy:
+    concurrency: ci-${{ github.ref }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install wasm4
+        run: npm install -g wasm4
+      - uses: goto-bus-stop/setup-zig@v1
+        with:
+          version: 0.9.1
+      - run: zig version
+      - run: zig build -Drelease-small=true
+      - run: ls -l zig-out/lib/cart.wasm
+      - run: mkdir -p zig-out/bundle
+      - run: w4 bundle --html zig-out/bundle/index.html --title Jumper --description "Simple platformer" zig-out/lib/cart.wasm
+      - name: Deploy 🚀
+        # v4.3.3
+        uses: JamesIves/github-pages-deploy-action@8817a56e5bfec6e2b08345c81f4d422db53a2cdc
+        with:
+          branch: gh-pages
+          folder: zig-out/bundle/
+
   lint:
     runs-on: ubuntu-latest
     steps:
