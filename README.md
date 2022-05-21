@@ -21,6 +21,11 @@ Then run it with:
 ```shell
 w4 run zig-out/lib/cart.wasm
 ```
+## Bundling
+
+```shell
+w4 bundle --html zig-out/index.html --title Jumper --description "Simple platformer" zig-out/lib/cart.wasm
+```
 
 For more info about setting up WASM-4, see the [quickstart guide](https://wasm4.org/docs/getting-started/setup?code-lang=zig#quickstart).
 
